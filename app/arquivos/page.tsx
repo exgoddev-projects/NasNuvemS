@@ -70,6 +70,15 @@ export default async function ArquivosPage() {
               🔍
             </button>
 
+            <Link
+              href="/armazenamento"
+              aria-label="Armazenamento"
+              title="Armazenamento"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-lg transition hover:bg-slate-800 md:hidden"
+            >
+              ☁️
+            </Link>
+
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-bold"
               title={user.email ?? "Usuário"}
@@ -120,13 +129,13 @@ export default async function ArquivosPage() {
                 Armazenamento
               </div>
 
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-slate-400 hover:bg-slate-900"
+              <Link
+                href="/armazenamento"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-slate-400 transition hover:bg-slate-900 hover:text-white"
               >
                 <span>☁️</span>
                 Providers
-              </button>
+              </Link>
 
               <p className="px-4 text-[10px] text-slate-600">
                 Nenhum conectado

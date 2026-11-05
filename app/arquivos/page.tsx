@@ -1,6 +1,7 @@
 export const instant = false;
 
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -199,9 +200,9 @@ export default async function ArquivosPage() {
               {!error && pastas.length > 0 && (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {pastas.map((pasta) => (
-                    <button
-                      type="button"
+                    <Link
                       key={pasta.id}
+                      href={`/arquivos/${pasta.id}`}
                       className="group min-w-0 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-500/40 hover:bg-slate-900"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -221,7 +222,7 @@ export default async function ArquivosPage() {
                       <div className="mt-1 text-[10px] text-slate-600 sm:text-xs">
                         Pasta
                       </div>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               )}

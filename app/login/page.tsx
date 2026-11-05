@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -34,45 +35,6 @@ export default function LoginPage() {
     }
 
     window.location.href = "/teste-supabase";
-  }
-
-  async function criarConta() {
-    setMensagem("");
-    setTipoMensagem("");
-
-    if (!email || !senha) {
-      setTipoMensagem("erro");
-      setMensagem("Digite seu e-mail e uma senha para criar a conta.");
-      return;
-    }
-
-    if (senha.length < 6) {
-      setTipoMensagem("erro");
-      setMensagem("A senha precisa ter pelo menos 6 caracteres.");
-      return;
-    }
-
-    setCarregando(true);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-      options: {
-        emailRedirectTo: `${window.location.origin}/teste-supabase`,
-      },
-    });
-
-    if (error) {
-      setTipoMensagem("erro");
-      setMensagem(error.message);
-    } else {
-      setTipoMensagem("sucesso");
-      setMensagem(
-        "Conta criada! Confira sua caixa de entrada para confirmar o e-mail."
-      );
-    }
-
-    setCarregando(false);
   }
 
   async function recuperarSenha() {
@@ -251,14 +213,12 @@ export default function LoginPage() {
                   <div className="h-px flex-1 bg-slate-800" />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={criarConta}
-                  disabled={carregando}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 font-semibold transition hover:border-slate-600 hover:bg-slate-800 disabled:opacity-50 sm:py-3.5"
-                >
-                  Criar minha conta
-                </button>
+                <Link
+                href="/cadastro"
+                className="block w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 font-semibold transition hover:border-slate-600 hover:bg-slate-800 sm:py-3.5 text-center"
+              >
+                Criar minha conta
+              </Link>
 
                 <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500 sm:mt-5 sm:text-xs">
                   <span>🔒</span>

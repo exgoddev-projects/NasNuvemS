@@ -37,7 +37,7 @@ export default function CadastroPage() {
       email,
       password: senha,
       options: {
-        emailRedirectTo: `${window.location.origin}/teste-supabase`,
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
       },
     });
 

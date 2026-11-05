@@ -1,6 +1,7 @@
 export const instant = false;
 
 import { createClient } from "@/lib/supabase/server";
+import { SetupUserButton } from "@/components/setup-user-button";
 
 export default async function TesteSupabasePage() {
   const supabase = await createClient();
@@ -39,6 +40,8 @@ export default async function TesteSupabasePage() {
             </p>
           )}
         </div>
+
+        {data.user && <SetupUserButton />}
       </section>
     </main>
   );

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Permite publicar apenas o modelo sem credenciais
+!.env.example

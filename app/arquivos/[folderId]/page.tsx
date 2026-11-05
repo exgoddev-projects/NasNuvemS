@@ -4,6 +4,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { NewFolderButton } from "@/components/folders/new-folder-button";
 import { DeleteFolderButton } from "@/components/folders/delete-folder-button";
+import { FolderGrid } from "@/components/folders/folder-grid";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,6 +37,12 @@ export default async function PastaPage({
   if (error || !pasta) {
     notFound();
   }
+
+  const { data: destinos } = await supabase
+    .from("folders")
+    .select("id, name, parent_id")
+    .eq("user_id", user.id)
+    .order("name");
 
   const { data: subpastas } = await supabase
     .from("folders")
@@ -113,34 +120,13 @@ export default async function PastaPage({
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                {subpastas?.map((subpasta) => (
-                  <div
-                    key={subpasta.id}
-                    className="relative min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 transition hover:border-blue-500/40"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <Link
-                        href={`/arquivos/${subpasta.id}`}
-                        className="min-w-0 flex-1"
-                      >
-                        <div className="text-4xl">📁</div>
-
-                        <div className="mt-4 truncate font-semibold">
-                          {subpasta.name}
-                        </div>
-
-                        <div className="mt-1 text-xs text-slate-600">
-                          Pasta
-                        </div>
-                      </Link>
-
-                      <DeleteFolderButton
-                        folderId={subpasta.id}
-                        folderName={subpasta.name}
-                      />
-                    </div>
-                  </div>
-                ))}
+                <div className="col-span-full">
+                  <FolderGrid
+                    folders={subpastas ?? []}
+                    destinations={destinos ?? []}
+                    currentFolderId={pasta.id}
+                  />
+                </div>
 
                 {arquivos?.map((arquivo) => (
                   <div

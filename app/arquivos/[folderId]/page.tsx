@@ -2,6 +2,8 @@ export const instant = false;
 
 import Link from "next/link";
 import { connection } from "next/server";
+import { NewFolderButton } from "@/components/folders/new-folder-button";
+import { DeleteFolderButton } from "@/components/folders/delete-folder-button";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -74,12 +76,7 @@ export default async function PastaPage({
             </div>
           </div>
 
-          <button
-            type="button"
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold"
-          >
-            + Nova pasta
-          </button>
+          <NewFolderButton parentId={pasta.id} />
         </header>
 
         <section className="min-h-0 overflow-y-auto">
@@ -117,21 +114,32 @@ export default async function PastaPage({
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {subpastas?.map((subpasta) => (
-                  <Link
+                  <div
                     key={subpasta.id}
-                    href={`/arquivos/${subpasta.id}`}
-                    className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
+                    className="relative min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 transition hover:border-blue-500/40"
                   >
-                    <div className="text-4xl">📁</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/arquivos/${subpasta.id}`}
+                        className="min-w-0 flex-1"
+                      >
+                        <div className="text-4xl">📁</div>
 
-                    <div className="mt-4 truncate font-semibold">
-                      {subpasta.name}
-                    </div>
+                        <div className="mt-4 truncate font-semibold">
+                          {subpasta.name}
+                        </div>
 
-                    <div className="mt-1 text-xs text-slate-600">
-                      Pasta
+                        <div className="mt-1 text-xs text-slate-600">
+                          Pasta
+                        </div>
+                      </Link>
+
+                      <DeleteFolderButton
+                        folderId={subpasta.id}
+                        folderName={subpasta.name}
+                      />
                     </div>
-                  </Link>
+                  </div>
                 ))}
 
                 {arquivos?.map((arquivo) => (

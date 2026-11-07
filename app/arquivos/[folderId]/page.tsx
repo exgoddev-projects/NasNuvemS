@@ -173,6 +173,8 @@ export default async function PastaPage({
 
                 <FileGrid
                   files={arquivosComPreview}
+                  destinations={destinos ?? []}
+                  currentFolderId={pasta.id}
                 />
               </div>
             )}

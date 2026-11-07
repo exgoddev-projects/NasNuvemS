@@ -5,6 +5,15 @@ import { connection } from "next/server";
 import { NewFolderButton } from "@/components/folders/new-folder-button";
 import { DeleteFolderButton } from "@/components/folders/delete-folder-button";
 import { FolderGrid } from "@/components/folders/folder-grid";
+import { UploadButton } from "@/components/files/upload-button";
+import { FilePreview } from "@/components/files/file-preview";
+import { FileGrid } from "@/components/files/file-grid";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {
+  createB2Client,
+  getB2BucketName,
+} from "@/lib/storage/providers/b2/client";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -53,11 +62,42 @@ export default async function PastaPage({
 
   const { data: arquivos } = await supabase
     .from("files")
-    .select("id, name, mime_type, size_bytes, is_favorite")
+    .select("id, name, mime_type, size_bytes, is_favorite, provider, provider_path")
     .eq("user_id", user.id)
     .eq("folder_id", pasta.id)
     .is("deleted_at", null)
     .order("name");
+
+  const b2 = createB2Client();
+
+  const arquivosComPreview = await Promise.all(
+    (arquivos ?? []).map(async (arquivo) => {
+      let previewUrl: string | null = null;
+
+      const ehImagem =
+        arquivo.mime_type?.startsWith("image/") &&
+        arquivo.provider === "b2" &&
+        arquivo.provider_path;
+
+      if (ehImagem) {
+        previewUrl = await getSignedUrl(
+          b2,
+          new GetObjectCommand({
+            Bucket: getB2BucketName(),
+            Key: arquivo.provider_path,
+          }),
+          {
+            expiresIn: 900,
+          }
+        );
+      }
+
+      return {
+        ...arquivo,
+        previewUrl,
+      };
+    })
+  );
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-slate-950 text-white">
@@ -83,7 +123,10 @@ export default async function PastaPage({
             </div>
           </div>
 
-          <NewFolderButton parentId={pasta.id} />
+          <div className="flex items-center gap-2">
+            <UploadButton folderId={pasta.id} />
+            <NewFolderButton parentId={pasta.id} />
+          </div>
         </header>
 
         <section className="min-h-0 overflow-y-auto">
@@ -128,24 +171,9 @@ export default async function PastaPage({
                   />
                 </div>
 
-                {arquivos?.map((arquivo) => (
-                  <div
-                    key={arquivo.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
-                  >
-                    <div className="text-4xl">
-                      📄
-                    </div>
-
-                    <div className="mt-4 truncate font-semibold">
-                      {arquivo.name}
-                    </div>
-
-                    <div className="mt-1 text-xs text-slate-600">
-                      Arquivo
-                    </div>
-                  </div>
-                ))}
+                <FileGrid
+                  files={arquivosComPreview}
+                />
               </div>
             )}
           </div>

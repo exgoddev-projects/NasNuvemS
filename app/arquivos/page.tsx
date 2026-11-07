@@ -99,13 +99,13 @@ export default async function ArquivosPage() {
                 Meus arquivos
               </a>
 
-              <button
-                type="button"
+              <Link
+                href="/arquivos/favoritos"
                 className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-slate-400 hover:bg-slate-900 hover:text-white"
               >
                 <span>⭐</span>
                 Favoritos
-              </button>
+              </Link>
 
               <button
                 type="button"
@@ -173,9 +173,12 @@ export default async function ArquivosPage() {
                   📁 Arquivos
                 </button>
 
-                <button className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400">
+                <Link
+                  href="/arquivos/favoritos"
+                  className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400"
+                >
                   ⭐ Favoritos
-                </button>
+                </Link>
 
                 <button className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400">
                   🕘 Recentes

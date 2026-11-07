@@ -8,6 +8,7 @@ type FileItem = {
   name: string;
   mime_type: string | null;
   size_bytes: number | null;
+  is_favorite: boolean;
   previewUrl: string | null;
 };
 
@@ -199,6 +200,66 @@ export function FileGrid({
       );
     } finally {
       setRenomeandoArquivo(false);
+    }
+  }
+
+  async function alternarFavorito() {
+    const ids = Array.from(selecionados);
+
+    if (ids.length === 0) {
+      return;
+    }
+
+    const selecionadosItens =
+      files.filter((file) =>
+        selecionados.has(file.id)
+      );
+
+    const todosFavoritos =
+      selecionadosItens.length > 0 &&
+      selecionadosItens.every(
+        (file) => file.is_favorite
+      );
+
+    const favorite = !todosFavoritos;
+
+    setErro("");
+
+    try {
+      const response = await fetch(
+        "/api/files/favorite",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            ids,
+            favorite,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Nao foi possivel atualizar os favoritos."
+        );
+      }
+
+      setSelecionados(new Set());
+      setModoSelecao(false);
+
+      window.location.reload();
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Erro ao atualizar favoritos."
+      );
     }
   }
 
@@ -449,8 +510,17 @@ export function FileGrid({
               {arquivo.name}
             </div>
 
-            <div className="mt-1 text-xs text-slate-600">
-              Arquivo
+            <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-600">
+              <span>Arquivo</span>
+
+              {arquivo.is_favorite && (
+                <span
+                  title="Favorito"
+                  className="text-amber-300"
+                >
+                  ⭐
+                </span>
+              )}
             </div>
           </div>
         );
@@ -487,6 +557,25 @@ export function FileGrid({
                 className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ✏️ Renomear
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  void alternarFavorito()
+                }
+                className="rounded-xl px-3 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-500/10"
+              >
+                {files
+                  .filter((file) =>
+                    selecionados.has(file.id)
+                  )
+                  .every(
+                    (file) =>
+                      file.is_favorite
+                  )
+                    ? "☆ Remover favorito"
+                    : "⭐ Favoritar"}
               </button>
 
               <button

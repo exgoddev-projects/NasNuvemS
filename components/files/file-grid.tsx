@@ -48,6 +48,15 @@ export function FileGrid({
   const [destinoId, setDestinoId] =
     useState("");
 
+  const [renomeando, setRenomeando] =
+    useState(false);
+
+  const [renomeandoArquivo, setRenomeandoArquivo] =
+    useState(false);
+
+  const [novoNome, setNovoNome] =
+    useState("");
+
   function alternar(id: string) {
     setSelecionados((atual) => {
       const proximo = new Set(atual);
@@ -108,6 +117,89 @@ export function FileGrid({
     document.body.appendChild(form);
     form.submit();
     form.remove();
+  }
+
+  function abrirRenomear() {
+    if (selecionados.size !== 1) {
+      return;
+    }
+
+    const fileId =
+      Array.from(selecionados)[0];
+
+    const file = files.find(
+      (item) => item.id === fileId
+    );
+
+    if (!file) {
+      return;
+    }
+
+    setNovoNome(file.name);
+    setErro("");
+    setRenomeando(true);
+  }
+
+  async function confirmarRenomeacao() {
+    if (selecionados.size !== 1) {
+      return;
+    }
+
+    const fileId =
+      Array.from(selecionados)[0];
+
+    const name = novoNome.trim();
+
+    if (!name) {
+      setErro(
+        "Digite um nome para o arquivo."
+      );
+      return;
+    }
+
+    setRenomeandoArquivo(true);
+    setErro("");
+
+    try {
+      const response = await fetch(
+        "/api/files/rename",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            fileId,
+            name,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Nao foi possivel renomear o arquivo."
+        );
+      }
+
+      setRenomeando(false);
+      setNovoNome("");
+      setSelecionados(new Set());
+      setModoSelecao(false);
+
+      window.location.reload();
+    } catch (error) {
+      setErro(
+        error instanceof Error
+          ? error.message
+          : "Erro ao renomear arquivo."
+      );
+    } finally {
+      setRenomeandoArquivo(false);
+    }
   }
 
   async function moverSelecionados() {
@@ -390,6 +482,15 @@ export function FileGrid({
 
               <button
                 type="button"
+                onClick={abrirRenomear}
+                disabled={selecionados.size !== 1}
+                className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                ✏️ Renomear
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   setErro("");
                   setConfirmando(true);
@@ -401,6 +502,75 @@ export function FileGrid({
             </div>
           </div>
         )}
+
+      {renomeando && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white shadow-2xl">
+            <div className="text-3xl">
+              ✏️
+            </div>
+
+            <h2 className="mt-4 text-xl font-bold">
+              Renomear arquivo
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Digite o novo nome.
+            </p>
+
+            <input
+              autoFocus
+              type="text"
+              maxLength={180}
+              value={novoNome}
+              onChange={(event) =>
+                setNovoNome(
+                  event.target.value
+                )
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  void confirmarRenomeacao();
+                }
+              }}
+              className="mt-5 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+            />
+
+            {erro && (
+              <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+                {erro}
+              </p>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={renomeandoArquivo}
+                onClick={() => {
+                  setErro("");
+                  setRenomeando(false);
+                }}
+                className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                disabled={renomeandoArquivo}
+                onClick={() =>
+                  void confirmarRenomeacao()
+                }
+                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+              >
+                {renomeandoArquivo
+                  ? "Renomeando..."
+                  : "Renomear"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {movendo && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">

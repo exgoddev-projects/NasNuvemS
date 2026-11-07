@@ -759,20 +759,20 @@ export function FileGrid({
             </div>
 
             <h2 className="mt-4 text-xl font-bold">
-              Excluir {selecionados.size}{" "}
+              Mover {selecionados.size}{" "}
               {selecionados.size === 1
-                ? "arquivo"
-                : "arquivos"}?
+                ? "arquivo para a lixeira"
+                : "arquivos para a lixeira"}?
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
               Os arquivos selecionados serão
-              removidos permanentemente do
-              armazenamento.
+              movidos para a lixeira e poderão
+              ser restaurados.
             </p>
 
             <p className="mt-2 text-xs text-red-400">
-              Esta ação não poderá ser desfeita.
+              Os arquivos permanecerão no armazenamento até a exclusão definitiva.
             </p>
 
             {erro && (
@@ -804,7 +804,7 @@ export function FileGrid({
               >
                 {excluindo
                   ? "Excluindo..."
-                  : `Excluir ${selecionados.size}`}
+                  : `Mover ${selecionados.size}`}
               </button>
             </div>
           </div>

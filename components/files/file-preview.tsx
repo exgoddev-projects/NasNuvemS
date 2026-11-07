@@ -116,7 +116,23 @@ export function FilePreview({
     <>
       <button
         type="button"
-        onClick={() => setAberto(true)}
+        onClick={() => {
+          setAberto(true);
+
+          void fetch(
+            "/api/files/access",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                fileId,
+              }),
+            }
+          );
+        }}
         className="block w-full text-left"
       >
         <div className="aspect-square overflow-hidden rounded-xl bg-slate-950">
@@ -194,7 +210,7 @@ export function FilePreview({
             </div>
 
             <h2 className="mt-4 text-xl font-bold">
-              Excluir arquivo?
+              Mover arquivo para a lixeira?
             </h2>
 
             <p className="mt-3 break-words text-sm text-slate-300">
@@ -202,12 +218,12 @@ export function FilePreview({
             </p>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              O arquivo sera removido permanentemente
-              do armazenamento.
+              O arquivo sera movido para a lixeira
+              e podera ser restaurado.
             </p>
 
             <p className="mt-2 text-xs text-red-400">
-              Esta acao nao podera ser desfeita.
+              O arquivo continuara no armazenamento ate ser excluido definitivamente.
             </p>
 
             {erro && (
@@ -237,7 +253,7 @@ export function FilePreview({
               >
                 {excluindo
                   ? "Excluindo..."
-                  : "Excluir"}
+                  : "Mover para a lixeira"}
               </button>
             </div>
           </div>

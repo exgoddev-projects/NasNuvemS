@@ -46,6 +46,7 @@ export default async function FavoritosPage() {
         "id, name, mime_type, size_bytes, is_favorite, provider, provider_path"
       )
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .eq("is_favorite", true)
       .order("created_at", {
         ascending: false,

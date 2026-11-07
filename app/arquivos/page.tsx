@@ -107,21 +107,21 @@ export default async function ArquivosPage() {
                 Favoritos
               </Link>
 
-              <button
-                type="button"
+              <Link
+                href="/arquivos/recentes"
                 className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-slate-400 hover:bg-slate-900 hover:text-white"
               >
                 <span>🕘</span>
                 Recentes
-              </button>
+              </Link>
 
-              <button
-                type="button"
+              <Link
+                href="/arquivos/lixeira"
                 className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-slate-400 hover:bg-slate-900 hover:text-white"
               >
                 <span>🗑️</span>
                 Lixeira
-              </button>
+              </Link>
             </nav>
 
             <div className="mt-auto border-t border-slate-800 pt-4">
@@ -180,13 +180,19 @@ export default async function ArquivosPage() {
                   ⭐ Favoritos
                 </Link>
 
-                <button className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400">
+                <Link
+                  href="/arquivos/recentes"
+                  className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400"
+                >
                   🕘 Recentes
-                </button>
+                </Link>
 
-                <button className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400">
+                <Link
+                  href="/arquivos/lixeira"
+                  className="shrink-0 rounded-full border border-slate-800 px-4 py-2 text-xs text-slate-400"
+                >
                   🗑️ Lixeira
-                </button>
+                </Link>
               </div>
 
               {error && (

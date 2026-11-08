@@ -455,12 +455,30 @@ export function FileGrid({
                 className="block w-full text-left"
               >
                 {arquivo.previewUrl ? (
-                  <div className="aspect-square overflow-hidden rounded-xl bg-slate-950">
-                    <img
-                      src={arquivo.previewUrl}
-                      alt={arquivo.name}
-                      className="h-full w-full object-cover"
-                    />
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950">
+                    {arquivo.mime_type?.startsWith("video/") ? (
+                      <>
+                        <video
+                          src={arquivo.previewUrl}
+                          className="h-full w-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/70 text-xl text-white">
+                            ▶
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <img
+                        src={arquivo.previewUrl}
+                        alt={arquivo.name}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl">

@@ -72,8 +72,13 @@ export default async function FavoritosPage() {
             | null = null;
 
           if (
-            arquivo.mime_type?.startsWith(
-              "image/"
+            (
+              arquivo.mime_type?.startsWith(
+                "image/"
+              ) ||
+              arquivo.mime_type?.startsWith(
+                "video/"
+              )
             ) &&
             arquivo.provider === "b2" &&
             arquivo.provider_path

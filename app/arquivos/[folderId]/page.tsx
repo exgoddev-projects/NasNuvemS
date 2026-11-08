@@ -74,12 +74,15 @@ export default async function PastaPage({
     (arquivos ?? []).map(async (arquivo) => {
       let previewUrl: string | null = null;
 
-      const ehImagem =
-        arquivo.mime_type?.startsWith("image/") &&
+      const ehMidia =
+        (
+          arquivo.mime_type?.startsWith("image/") ||
+          arquivo.mime_type?.startsWith("video/")
+        ) &&
         arquivo.provider === "b2" &&
         arquivo.provider_path;
 
-      if (ehImagem) {
+      if (ehMidia) {
         previewUrl = await getSignedUrl(
           b2,
           new GetObjectCommand({

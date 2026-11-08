@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FilePreview } from "@/components/files/file-preview";
 
 type TrashFile = {
   id: string;
@@ -167,36 +168,43 @@ export function TrashGrid({
             selecionados.has(file.id);
 
           return (
-            <button
-              type="button"
+            <div
               key={file.id}
-              onClick={() =>
-                alternar(file.id)
-              }
               className={`relative overflow-hidden rounded-2xl border p-4 text-left transition ${
                 marcado
                   ? "border-blue-500 bg-blue-500/10"
                   : "border-slate-800 bg-slate-900"
               }`}
             >
-              <div
-                className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg border font-bold ${
+              <button
+                type="button"
+                aria-label={
+                  marcado
+                    ? `Desmarcar ${file.name}`
+                    : `Selecionar ${file.name}`
+                }
+                onClick={() =>
+                  alternar(file.id)
+                }
+                className={`absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-lg border font-bold shadow-lg ${
                   marcado
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-slate-600 bg-slate-950/90 text-transparent"
                 }`}
               >
                 ✓
-              </div>
+              </button>
 
               {file.previewUrl ? (
-                <div className="aspect-square overflow-hidden rounded-xl bg-slate-950">
-                  <img
-                    src={file.previewUrl}
-                    alt={file.name}
-                    className="h-full w-full object-cover opacity-70"
-                  />
-                </div>
+                <FilePreview
+                  fileId={file.id}
+                  name={file.name}
+                  mimeType={file.mime_type}
+                  sizeBytes={file.size_bytes}
+                  previewUrl={file.previewUrl}
+                  readOnly
+                  trashMode
+                />
               ) : (
                 <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl opacity-70">
                   {file.mime_type?.startsWith(
@@ -221,7 +229,7 @@ export function TrashGrid({
               <div className="mt-1 text-xs text-slate-600">
                 Na lixeira
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

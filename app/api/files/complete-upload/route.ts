@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
+import { HeadObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@/lib/supabase/server";
+import {
+  createB2Client,
+  getB2BucketName,
+} from "@/lib/storage/providers/b2/client";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -52,12 +57,62 @@ export async function POST(request: Request) {
     !folderId ||
     !name ||
     !objectKey ||
-    !versionId ||
     sizeBytes < 0
   ) {
     return NextResponse.json(
       { error: "Dados do arquivo invalidos." },
       { status: 400 }
+    );
+  }
+
+  // O objeto precisa estar na area do proprio usuario.
+  const prefixoDoUsuario = `users/${user.id}/files/`;
+
+  if (
+    !objectKey.startsWith(prefixoDoUsuario) ||
+    objectKey.includes("..")
+  ) {
+    return NextResponse.json(
+      { error: "Arquivo invalido." },
+      { status: 403 }
+    );
+  }
+
+  // Confirma no B2 que o objeto existe e usa os dados reais dele.
+  let tamanhoReal = sizeBytes;
+  let versaoReal = versionId;
+  let tipoReal = mimeType;
+
+  try {
+    const head = await createB2Client().send(
+      new HeadObjectCommand({
+        Bucket: getB2BucketName(),
+        Key: objectKey,
+      })
+    );
+
+    if (typeof head.ContentLength === "number") {
+      tamanhoReal = head.ContentLength;
+    }
+
+    if (head.VersionId) {
+      versaoReal = head.VersionId;
+    }
+
+    if (head.ContentType) {
+      tipoReal = head.ContentType;
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Arquivo nao encontrado no storage." },
+      { status: 400 }
+    );
+  }
+
+  if (!versaoReal) {
+    return NextResponse.json(
+      { error: "O storage nao informou a versao do arquivo." },
+      { status: 502 }
     );
   }
 
@@ -83,17 +138,25 @@ export async function POST(request: Request) {
         folder_id: folderId,
 
         name,
-        mime_type: mimeType,
-        size_bytes: sizeBytes,
+        mime_type: tipoReal,
+        size_bytes: tamanhoReal,
 
         provider: "b2",
-        provider_file_id: versionId,
+        provider_file_id: versaoReal,
         provider_path: objectKey,
       })
       .select("id, name")
       .single();
 
   if (error) {
+    // 23505 = objeto ja registrado (indice unico em provider_path)
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: "Este arquivo ja foi registrado." },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

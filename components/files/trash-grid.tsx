@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FilePreview } from "@/components/files/file-preview";
 import {
   restaurarPastas,
@@ -238,17 +239,22 @@ export function TrashGrid({
             >
               {botaoMarcar(pasta.id, pasta.name)}
 
-              <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-5xl opacity-80">
-                📁
-              </div>
+              <Link
+                href={`/arquivos/lixeira/${pasta.id}`}
+                className="block"
+              >
+                <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-5xl opacity-80">
+                  📁
+                </div>
 
-              <div className="mt-4 truncate text-sm font-semibold">
-                {pasta.name}
-              </div>
+                <div className="mt-4 truncate text-sm font-semibold">
+                  {pasta.name}
+                </div>
 
-              <div className="mt-1 text-xs text-slate-600">
-                Pasta na lixeira
-              </div>
+                <div className="mt-1 text-xs text-slate-600">
+                  Pasta na lixeira • toque para abrir
+                </div>
+              </Link>
             </div>
           );
         })}

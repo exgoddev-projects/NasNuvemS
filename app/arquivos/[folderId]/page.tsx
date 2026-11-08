@@ -53,6 +53,36 @@ export default async function PastaPage({
     .eq("user_id", user.id)
     .order("name");
 
+  // Caminho completo (pasta raiz > ... > pasta atual), sem consulta extra.
+  const pastasPorId = new Map<
+    string,
+    { id: string; name: string; parent_id: string | null }
+  >(
+    (destinos ?? []).map(
+      (item: {
+        id: string;
+        name: string;
+        parent_id: string | null;
+      }): [
+        string,
+        { id: string; name: string; parent_id: string | null }
+      ] => [item.id, item]
+    )
+  );
+
+  const caminho: { id: string; name: string }[] = [];
+  const visitadas = new Set<string>();
+  let atual = pastasPorId.get(pasta.id);
+
+  while (atual && !visitadas.has(atual.id)) {
+    visitadas.add(atual.id);
+    caminho.unshift({ id: atual.id, name: atual.name });
+
+    atual = atual.parent_id
+      ? pastasPorId.get(atual.parent_id)
+      : undefined;
+  }
+
   const { data: subpastas } = await supabase
     .from("folders")
     .select("id, name")
@@ -135,7 +165,10 @@ export default async function PastaPage({
         <section className="min-h-0 overflow-y-auto">
           <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
 
-            <div className="mb-6 flex items-center gap-2 overflow-x-auto text-sm">
+            <nav
+              aria-label="Caminho da pasta"
+              className="mb-6 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-sm"
+            >
               <Link
                 href="/arquivos"
                 className="shrink-0 text-blue-400"
@@ -143,12 +176,28 @@ export default async function PastaPage({
                 Meus arquivos
               </Link>
 
-              <span className="text-slate-600">›</span>
+              {caminho.map((item, indice) => (
+                <span
+                  key={item.id}
+                  className="flex shrink-0 items-center gap-2"
+                >
+                  <span className="text-slate-600">›</span>
 
-              <span className="truncate font-medium">
-                {pasta.name}
-              </span>
-            </div>
+                  {indice === caminho.length - 1 ? (
+                    <span className="font-medium">
+                      {item.name}
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/arquivos/${item.id}`}
+                      className="text-blue-400"
+                    >
+                      {item.name}
+                    </Link>
+                  )}
+                </span>
+              ))}
+            </nav>
 
             {(subpastas?.length ?? 0) === 0 &&
             (arquivos?.length ?? 0) === 0 ? (

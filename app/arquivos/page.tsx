@@ -62,13 +62,14 @@ export default async function ArquivosPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
+            <Link
+              href="/arquivos/busca"
               aria-label="Buscar"
+              title="Buscar"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-lg hover:bg-slate-800"
             >
               🔍
-            </button>
+            </Link>
 
             <Link
               href="/armazenamento"

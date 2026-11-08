@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { renomearPasta, excluirPastas, moverPastas } from "@/app/arquivos/actions/folders";
+import { caminhoDaPasta } from "@/components/folders/folder-path";
 
 type Folder = {
   id: string;
@@ -477,8 +478,17 @@ export function FolderGrid({
                   >
                     <span className="text-2xl">📁</span>
 
-                    <span className="truncate text-sm font-semibold">
-                      {destination.name}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">
+                        {destination.name}
+                      </span>
+
+                      <span className="block truncate text-xs text-slate-500">
+                        {caminhoDaPasta(
+                          destination.parent_id,
+                          destinations
+                        )}
+                      </span>
                     </span>
                   </button>
                 ))}

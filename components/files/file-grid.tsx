@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FilePreview } from "@/components/files/file-preview";
+import { caminhoDaPasta } from "@/components/folders/folder-path";
 
 type FileItem = {
   id: string;
@@ -724,8 +725,17 @@ export function FileGrid({
                       📁
                     </span>
 
-                    <span className="truncate text-sm font-semibold">
-                      {destination.name}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">
+                        {destination.name}
+                      </span>
+
+                      <span className="block truncate text-xs text-slate-500">
+                        {caminhoDaPasta(
+                          destination.parent_id,
+                          destinations
+                        )}
+                      </span>
                     </span>
                   </button>
                 ))}

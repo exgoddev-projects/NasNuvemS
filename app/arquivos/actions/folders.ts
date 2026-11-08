@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { apagarArquivosDasPastas } from "@/lib/storage/purge-folders";
 
 const pastasProtegidas = new Set([
   "Documentos",
@@ -104,6 +105,9 @@ export async function excluirPasta(
   }
 
   const parentId = pasta.parent_id;
+
+  // Apaga primeiro os arquivos no B2; se falhar, nada e removido do banco.
+  await apagarArquivosDasPastas(supabase, user.id, [pasta.id]);
 
   const { error } = await supabase
     .from("folders")
@@ -236,6 +240,9 @@ export async function excluirPastas(
         (id): id is string => typeof id === "string"
       )
   );
+
+  // Apaga primeiro os arquivos no B2; se falhar, nada e removido do banco.
+  await apagarArquivosDasPastas(supabase, user.id, ids);
 
   const { error } = await supabase
     .from("folders")

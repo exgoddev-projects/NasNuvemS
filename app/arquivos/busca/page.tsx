@@ -65,6 +65,7 @@ export default async function BuscaPage({
           .from("folders")
           .select("id, name, parent_id")
           .eq("user_id", user.id)
+          .is("deleted_at", null)
           .ilike("name", padrao)
           .order("name")
           .limit(50),
@@ -83,7 +84,8 @@ export default async function BuscaPage({
         supabase
           .from("folders")
           .select("id, name, parent_id")
-          .eq("user_id", user.id),
+          .eq("user_id", user.id)
+          .is("deleted_at", null),
       ]);
 
     falhou = Boolean(
@@ -91,8 +93,18 @@ export default async function BuscaPage({
     );
 
     pastasEncontradas = pastasRes.data ?? [];
-    arquivosEncontrados = arquivosRes.data ?? [];
     todasPastas = todasRes.data ?? [];
+
+    const pastasAtivas = new Set<string>(
+      todasPastas.map((pasta) => pasta.id)
+    );
+
+    arquivosEncontrados = (arquivosRes.data ?? []).filter(
+      (arquivo: Arquivo) =>
+        arquivo.folder_id
+          ? pastasAtivas.has(arquivo.folder_id)
+          : true
+    );
   }
 
   const pastasPorId = new Map<string, Pasta>(

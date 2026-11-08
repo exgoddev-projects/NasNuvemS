@@ -29,7 +29,7 @@ function emLotes<T>(itens: T[], tamanho: number) {
  * Retorna os ids das pastas informadas
  * mais todas as subpastas, em qualquer nivel.
  */
-async function coletarArvore(
+export async function coletarArvore(
   supabase: SupabaseClient,
   userId: string,
   raizes: string[]

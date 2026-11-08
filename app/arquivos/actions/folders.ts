@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { apagarArquivosDasPastas } from "@/lib/storage/purge-folders";
+import {
+  enviarPastasParaLixeira,
+  restaurarPastasDaLixeira,
+} from "@/lib/folders/trash";
 
 const pastasProtegidas = new Set([
   "Documentos",
@@ -46,6 +50,7 @@ export async function criarPasta(
       .select("id")
       .eq("id", parentId)
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .single();
 
   if (parentError || !parent) {
@@ -106,18 +111,8 @@ export async function excluirPasta(
 
   const parentId = pasta.parent_id;
 
-  // Apaga primeiro os arquivos no B2; se falhar, nada e removido do banco.
-  await apagarArquivosDasPastas(supabase, user.id, [pasta.id]);
-
-  const { error } = await supabase
-    .from("folders")
-    .delete()
-    .eq("id", pasta.id)
-    .eq("user_id", user.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  // Vai para a lixeira junto com as subpastas e os arquivos.
+  await enviarPastasParaLixeira(supabase, user.id, [pasta.id]);
 
   if (parentId) {
     revalidatePath(`/arquivos/${parentId}`);
@@ -241,18 +236,8 @@ export async function excluirPastas(
       )
   );
 
-  // Apaga primeiro os arquivos no B2; se falhar, nada e removido do banco.
-  await apagarArquivosDasPastas(supabase, user.id, ids);
-
-  const { error } = await supabase
-    .from("folders")
-    .delete()
-    .eq("user_id", user.id)
-    .in("id", ids);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  // Vai para a lixeira junto com as subpastas e os arquivos.
+  await enviarPastasParaLixeira(supabase, user.id, ids);
 
   for (const parentId of parentIds) {
     revalidatePath(`/arquivos/${parentId}`);
@@ -317,6 +302,7 @@ export async function moverPastas(
       .select("id, parent_id")
       .eq("id", destinationId)
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .single();
 
   if (destinationError || !destino) {
@@ -403,4 +389,90 @@ export async function moverPastas(
 
   revalidatePath(`/arquivos/${destinationId}`);
   revalidatePath("/arquivos");
+}
+
+export async function restaurarPastas(
+  folderIds: string[]
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  const ids = Array.from(
+    new Set(folderIds.filter(Boolean))
+  );
+
+  if (ids.length === 0) {
+    throw new Error("Nenhuma pasta selecionada.");
+  }
+
+  await restaurarPastasDaLixeira(supabase, user.id, ids);
+
+  revalidatePath("/arquivos");
+  revalidatePath("/arquivos/lixeira");
+}
+
+export async function excluirPastasDefinitivamente(
+  folderIds: string[]
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  const ids = Array.from(
+    new Set(folderIds.filter(Boolean))
+  );
+
+  if (ids.length === 0) {
+    throw new Error("Nenhuma pasta selecionada.");
+  }
+
+  // So pastas que ja estao na lixeira podem ser apagadas de vez.
+  const { data: pastas, error: foldersError } =
+    await supabase
+      .from("folders")
+      .select("id")
+      .eq("user_id", user.id)
+      .not("deleted_at", "is", null)
+      .in("id", ids);
+
+  if (foldersError) {
+    throw new Error(foldersError.message);
+  }
+
+  if (!pastas || pastas.length !== ids.length) {
+    throw new Error(
+      "Uma ou mais pastas não estão na lixeira."
+    );
+  }
+
+  // Apaga primeiro os arquivos no B2; se falhar, as pastas continuam na lixeira.
+  await apagarArquivosDasPastas(supabase, user.id, ids);
+
+  const { error } = await supabase
+    .from("folders")
+    .delete()
+    .eq("user_id", user.id)
+    .in("id", ids);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/arquivos");
+  revalidatePath("/arquivos/lixeira");
 }

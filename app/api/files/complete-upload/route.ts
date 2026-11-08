@@ -121,6 +121,7 @@ export async function POST(request: Request) {
     .select("id")
     .eq("id", folderId)
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .single();
 
   if (!folder) {

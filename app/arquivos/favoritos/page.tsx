@@ -43,7 +43,7 @@ export default async function FavoritosPage() {
     await supabase
       .from("files")
       .select(
-        "id, name, mime_type, size_bytes, is_favorite, provider, provider_path"
+        "id, name, mime_type, size_bytes, is_favorite, folder_id, provider, provider_path"
       )
       .eq("user_id", user.id)
       .is("deleted_at", null)
@@ -59,13 +59,27 @@ export default async function FavoritosPage() {
         "id, name, parent_id"
       )
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("name");
+
+  const pastasAtivas = new Set<string>(
+    (destinos ?? []).map(
+      (pasta: { id: string }) => pasta.id
+    )
+  );
 
   const b2 = createB2Client();
 
   const arquivosComPreview =
     await Promise.all(
-      (arquivos ?? []).map(
+      (arquivos ?? [])
+        .filter(
+          (arquivo: { folder_id: string | null }) =>
+            arquivo.folder_id
+              ? pastasAtivas.has(arquivo.folder_id)
+              : true
+        )
+        .map(
         async (arquivo) => {
           let previewUrl:
             | string

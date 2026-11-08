@@ -41,6 +41,7 @@ export default async function PastaPage({
     .select("id, name, parent_id")
     .eq("id", folderId)
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .single();
 
   if (error || !pasta) {
@@ -51,6 +52,7 @@ export default async function PastaPage({
     .from("folders")
     .select("id, name, parent_id")
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .order("name");
 
   // Caminho completo (pasta raiz > ... > pasta atual), sem consulta extra.
@@ -88,6 +90,7 @@ export default async function PastaPage({
     .select("id, name")
     .eq("user_id", user.id)
     .eq("parent_id", pasta.id)
+    .is("deleted_at", null)
     .order("name");
 
   const { data: arquivos } = await supabase

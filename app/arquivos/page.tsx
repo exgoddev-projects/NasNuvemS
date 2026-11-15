@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garantirPastasPadrao } from "@/lib/folders/default-folders";
 
 type Folder = {
   id: string;
@@ -30,6 +31,13 @@ export default async function ArquivosPage() {
 
   if (userError || !user) {
     redirect("/login");
+  }
+
+  // Conta nova: cria as pastas padrao no primeiro acesso.
+  try {
+    await garantirPastasPadrao(supabase, user.id);
+  } catch {
+    // Se falhar, a consulta abaixo mostra o erro normalmente.
   }
 
   const { data, error } = await supabase

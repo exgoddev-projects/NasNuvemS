@@ -34,7 +34,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = "/teste-supabase";
+    window.location.href = "/arquivos";
   }
 
   async function recuperarSenha() {

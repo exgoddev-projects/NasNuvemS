@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { renomearPasta, excluirPastas, moverPastas } from "@/app/arquivos/actions/folders";
 import { caminhoDaPasta } from "@/components/folders/folder-path";
+import { useDragDrop } from "@/components/filesystem/drag-drop-context";
 
 type Folder = {
   id: string;
@@ -23,6 +24,20 @@ export function FolderGrid({
   }>;
   currentFolderId: string;
 }) {
+  const {
+    draggedItem,
+    hoveredFolderId,
+    moving: movingByDrag,
+    selectionMode,
+    setSelectionMode,
+    isValidDropTarget,
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+  } = useDragDrop();
+  const [dragDesktop, setDragDesktop] = useState(false);
   const [modoSelecao, setModoSelecao] = useState(false);
   const [selecionados, setSelecionados] = useState<Set<string>>(
     new Set()
@@ -35,6 +50,27 @@ export function FolderGrid({
   const [novoNome, setNovoNome] = useState("");
   const [erro, setErro] = useState("");
   const [pendente, iniciarTransicao] = useTransition();
+
+  useEffect(() => {
+    const pointer = window.matchMedia(
+      "(hover: hover) and (pointer: fine)"
+    );
+    const atualizar = () =>
+      setDragDesktop(
+        pointer.matches && navigator.maxTouchPoints === 0
+      );
+
+    atualizar();
+    pointer.addEventListener("change", atualizar);
+
+    return () => pointer.removeEventListener("change", atualizar);
+  }, []);
+
+  useEffect(() => {
+    setSelectionMode("folders", modoSelecao);
+
+    return () => setSelectionMode("folders", false);
+  }, [modoSelecao, setSelectionMode]);
 
   function alternar(folderId: string) {
     setSelecionados((atual) => {
@@ -209,16 +245,58 @@ export function FolderGrid({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {folders.map((folder) => {
           const marcado = selecionados.has(folder.id);
+          const itemArrastado =
+            draggedItem?.type === "folder" && draggedItem.id === folder.id;
+          const destinoValido = isValidDropTarget(folder.id);
+          const podeArrastar =
+            dragDesktop &&
+            !modoSelecao &&
+            !selectionMode &&
+            !movingByDrag;
 
           return (
             <div
               key={folder.id}
+              draggable={podeArrastar}
+              onDragStart={(event) => {
+                if (!podeArrastar) {
+                  event.preventDefault();
+                  return;
+                }
+
+                event.dataTransfer.setDragImage(
+                  event.currentTarget,
+                  16,
+                  16
+                );
+                onDragStart(event, {
+                  type: "folder",
+                  id: folder.id,
+                });
+              }}
+              onDragEnd={onDragEnd}
+              onDragOver={(event) => onDragOver(event, folder.id)}
+              onDragLeave={(event) => onDragLeave(event, folder.id)}
+              onDrop={(event) => void onDrop(event, folder.id)}
               className={`relative min-w-0 rounded-2xl border p-4 transition ${
                 marcado
                   ? "border-blue-500 bg-blue-500/10"
-                  : "border-slate-800 bg-slate-900"
+                  : destinoValido && hoveredFolderId === folder.id
+                    ? "border-emerald-400 bg-emerald-500/15 ring-2 ring-emerald-400/40"
+                    : "border-slate-800 bg-slate-900"
+              } ${itemArrastado ? "opacity-50 cursor-grabbing" : ""} ${
+                podeArrastar ? "cursor-grab" : ""
               }`}
             >
+              {dragDesktop && !modoSelecao && !selectionMode && (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-3 top-3 z-10 hidden h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/90 text-slate-300 sm:flex"
+                >
+                  ⠿
+                </span>
+              )}
+
               {modoSelecao && (
                 <button
                   type="button"

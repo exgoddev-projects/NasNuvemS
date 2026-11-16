@@ -8,6 +8,7 @@ import { FolderGrid } from "@/components/folders/folder-grid";
 import { UploadButton } from "@/components/files/upload-button";
 import { FilePreview } from "@/components/files/file-preview";
 import { FileGrid } from "@/components/files/file-grid";
+import { DragDropProvider } from "@/components/filesystem/drag-drop-context";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -101,6 +102,10 @@ export default async function PastaPage({
   );
 
   return (
+    <DragDropProvider
+      destinations={destinos ?? []}
+      currentFolderId={pasta.id}
+    >
     <main className="fixed inset-0 overflow-hidden bg-slate-950 text-white">
       <div className="grid h-full grid-rows-[64px_minmax(0,1fr)_42px]">
 
@@ -212,5 +217,6 @@ export default async function PastaPage({
 
       </div>
     </main>
+    </DragDropProvider>
   );
 }

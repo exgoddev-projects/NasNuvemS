@@ -8,12 +8,7 @@ import { FolderGrid } from "@/components/folders/folder-grid";
 import { UploadButton } from "@/components/files/upload-button";
 import { FilePreview } from "@/components/files/file-preview";
 import { FileGrid } from "@/components/files/file-grid";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import {
-  createB2Client,
-  getB2BucketName,
-} from "@/lib/storage/providers/b2/client";
+import { addPreviewUrls } from "@/lib/storage/preview-urls";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -101,38 +96,8 @@ export default async function PastaPage({
     .is("deleted_at", null)
     .order("name");
 
-  const b2 = createB2Client();
-
-  const arquivosComPreview = await Promise.all(
-    (arquivos ?? []).map(async (arquivo) => {
-      let previewUrl: string | null = null;
-
-      const ehMidia =
-        (
-          arquivo.mime_type?.startsWith("image/") ||
-          arquivo.mime_type?.startsWith("video/")
-        ) &&
-        arquivo.provider === "b2" &&
-        arquivo.provider_path;
-
-      if (ehMidia) {
-        previewUrl = await getSignedUrl(
-          b2,
-          new GetObjectCommand({
-            Bucket: getB2BucketName(),
-            Key: arquivo.provider_path,
-          }),
-          {
-            expiresIn: 900,
-          }
-        );
-      }
-
-      return {
-        ...arquivo,
-        previewUrl,
-      };
-    })
+  const arquivosComPreview = await addPreviewUrls(
+    arquivos ?? []
   );
 
   return (

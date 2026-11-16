@@ -5,25 +5,13 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 
 import {
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-
-import {
-  getSignedUrl,
-} from "@aws-sdk/s3-request-presigner";
-
-import {
   createClient,
 } from "@/lib/supabase/server";
 
 import {
-  createB2Client,
-  getB2BucketName,
-} from "@/lib/storage/providers/b2/client";
-
-import {
   FileGrid,
 } from "@/components/files/file-grid";
+import { addPreviewUrls } from "@/lib/storage/preview-urls";
 
 export default async function FavoritosPage() {
   await connection();
@@ -68,57 +56,15 @@ export default async function FavoritosPage() {
     )
   );
 
-  const b2 = createB2Client();
+  const arquivosVisiveis = (arquivos ?? []).filter(
+    (arquivo: { folder_id: string | null }) =>
+      arquivo.folder_id
+        ? pastasAtivas.has(arquivo.folder_id)
+        : true
+  );
 
   const arquivosComPreview =
-    await Promise.all(
-      (arquivos ?? [])
-        .filter(
-          (arquivo: { folder_id: string | null }) =>
-            arquivo.folder_id
-              ? pastasAtivas.has(arquivo.folder_id)
-              : true
-        )
-        .map(
-        async (arquivo) => {
-          let previewUrl:
-            | string
-            | null = null;
-
-          if (
-            (
-              arquivo.mime_type?.startsWith(
-                "image/"
-              ) ||
-              arquivo.mime_type?.startsWith(
-                "video/"
-              )
-            ) &&
-            arquivo.provider === "b2" &&
-            arquivo.provider_path
-          ) {
-            previewUrl =
-              await getSignedUrl(
-                b2,
-                new GetObjectCommand({
-                  Bucket:
-                    getB2BucketName(),
-                  Key:
-                    arquivo.provider_path,
-                }),
-                {
-                  expiresIn: 900,
-                }
-              );
-          }
-
-          return {
-            ...arquivo,
-            previewUrl,
-          };
-        }
-      )
-    );
+    await addPreviewUrls(arquivosVisiveis);
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-slate-950 text-white">

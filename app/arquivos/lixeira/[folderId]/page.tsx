@@ -4,17 +4,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { redirect, notFound } from "next/navigation";
 
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
 import { createClient } from "@/lib/supabase/server";
-
-import {
-  createB2Client,
-  getB2BucketName,
-} from "@/lib/storage/providers/b2/client";
-
 import { FilePreview } from "@/components/files/file-preview";
+import { addPreviewUrls } from "@/lib/storage/preview-urls";
 
 type PastaExcluida = {
   id: string;
@@ -98,42 +90,8 @@ export default async function PastaNaLixeiraPage({
     .eq("folder_id", pasta.id)
     .order("name");
 
-  const b2 = createB2Client();
-
-  const arquivosComPreview = await Promise.all(
-    (arquivos ?? []).map(
-      async (arquivo: {
-        id: string;
-        name: string;
-        mime_type: string | null;
-        size_bytes: number | null;
-        provider: string | null;
-        provider_path: string | null;
-      }) => {
-        let previewUrl: string | null = null;
-
-        if (
-          (arquivo.mime_type?.startsWith("image/") ||
-            arquivo.mime_type?.startsWith("video/")) &&
-          arquivo.provider === "b2" &&
-          arquivo.provider_path
-        ) {
-          previewUrl = await getSignedUrl(
-            b2,
-            new GetObjectCommand({
-              Bucket: getB2BucketName(),
-              Key: arquivo.provider_path,
-            }),
-            { expiresIn: 900 }
-          );
-        }
-
-        return {
-          ...arquivo,
-          previewUrl,
-        };
-      }
-    )
+  const arquivosComPreview = await addPreviewUrls(
+    arquivos ?? []
   );
 
   const total = subpastas.length + arquivosComPreview.length;

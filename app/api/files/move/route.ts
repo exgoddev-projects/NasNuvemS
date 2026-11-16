@@ -82,7 +82,8 @@ export async function POST(request: Request) {
       .from("files")
       .select("id")
       .eq("user_id", user.id)
-      .in("id", ids);
+      .in("id", ids)
+      .is("deleted_at", null);
 
   if (filesError) {
     return NextResponse.json(
@@ -117,7 +118,8 @@ export async function POST(request: Request) {
         folder_id: destinationId,
       })
       .eq("user_id", user.id)
-      .in("id", ids);
+      .in("id", ids)
+      .is("deleted_at", null);
 
   if (moveError) {
     return NextResponse.json(

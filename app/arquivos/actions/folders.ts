@@ -284,7 +284,8 @@ export async function moverPastas(
       .from("folders")
       .select("id, parent_id")
       .eq("user_id", user.id)
-      .in("id", ids);
+      .in("id", ids)
+      .is("deleted_at", null);
 
   if (foldersError) {
     throw new Error(foldersError.message);
@@ -377,7 +378,8 @@ export async function moverPastas(
       parent_id: destinationId,
     })
     .eq("user_id", user.id)
-    .in("id", ids);
+    .in("id", ids)
+    .is("deleted_at", null);
 
   if (error) {
     throw new Error(error.message);

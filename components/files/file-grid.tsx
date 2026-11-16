@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FilePreview } from "@/components/files/file-preview";
 import { caminhoDaPasta } from "@/components/folders/folder-path";
+import { useOptionalDragDrop } from "@/components/filesystem/drag-drop-context";
 
 type FileItem = {
   id: string;
@@ -26,6 +27,9 @@ export function FileGrid({
   }>;
   currentFolderId: string;
 }) {
+  const dragDrop = useOptionalDragDrop();
+  const setDragSelectionMode = dragDrop?.setSelectionMode;
+  const [dragDesktop, setDragDesktop] = useState(false);
   const [modoSelecao, setModoSelecao] =
     useState(false);
 
@@ -58,6 +62,27 @@ export function FileGrid({
 
   const [novoNome, setNovoNome] =
     useState("");
+
+  useEffect(() => {
+    const pointer = window.matchMedia(
+      "(hover: hover) and (pointer: fine)"
+    );
+    const atualizar = () =>
+      setDragDesktop(
+        pointer.matches && navigator.maxTouchPoints === 0
+      );
+
+    atualizar();
+    pointer.addEventListener("change", atualizar);
+
+    return () => pointer.removeEventListener("change", atualizar);
+  }, []);
+
+  useEffect(() => {
+    setDragSelectionMode?.("files", modoSelecao);
+
+    return () => setDragSelectionMode?.("files", false);
+  }, [modoSelecao, setDragSelectionMode]);
 
   function alternar(id: string) {
     setSelecionados((atual) => {
@@ -420,16 +445,57 @@ export function FileGrid({
       {files.map((arquivo) => {
         const marcado =
           selecionados.has(arquivo.id);
+        const itemArrastado =
+          dragDrop?.draggedItem?.type === "file" &&
+          dragDrop.draggedItem.id === arquivo.id;
+        const podeArrastar =
+          !!dragDrop &&
+          dragDesktop &&
+          !modoSelecao &&
+          !dragDrop.selectionMode &&
+          !dragDrop.moving;
 
         return (
           <div
             key={arquivo.id}
+            draggable={podeArrastar}
+            onDragStart={(event) => {
+              if (!podeArrastar || !dragDrop) {
+                event.preventDefault();
+                return;
+              }
+
+              event.dataTransfer.setDragImage(
+                event.currentTarget,
+                16,
+                16
+              );
+              dragDrop.onDragStart(event, {
+                type: "file",
+                id: arquivo.id,
+              });
+            }}
+            onDragEnd={() => dragDrop?.onDragEnd()}
             className={`relative rounded-2xl border p-4 transition ${
               marcado
                 ? "border-blue-500 bg-blue-500/10"
                 : "border-slate-800 bg-slate-900"
+            } ${itemArrastado ? "opacity-50" : ""} ${
+              podeArrastar ? "cursor-grab" : ""
             }`}
           >
+            {dragDrop &&
+              dragDesktop &&
+              !modoSelecao &&
+              !dragDrop.selectionMode && (
+              <span
+                aria-hidden="true"
+                className="absolute left-3 top-3 z-10 hidden h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/90 text-slate-300 sm:flex"
+              >
+                ⠿
+              </span>
+            )}
+
             {modoSelecao && (
               <button
                 type="button"

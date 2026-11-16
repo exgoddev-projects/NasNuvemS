@@ -226,7 +226,19 @@ export function FilePreview({
         className="block w-full text-left"
       >
         <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950">
-          {mimeType?.startsWith("video/") ? (
+          {mimeType?.startsWith("audio/") ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-900 to-slate-950 px-4 text-center">
+              <span aria-hidden="true" className="text-6xl">
+                🎵
+              </span>
+              <span className="max-w-full truncate text-sm font-medium text-slate-300">
+                {name}
+              </span>
+              <span className="text-xs text-slate-500">
+                Áudio • Toque para reproduzir
+              </span>
+            </div>
+          ) : mimeType?.startsWith("video/") ? (
             <>
               <video
                 src={previewUrl}
@@ -280,7 +292,21 @@ export function FilePreview({
           </header>
 
           <div className="flex min-h-0 flex-1 items-center justify-center p-4">
-            {mimeType?.startsWith("video/") ? (
+            {mimeType?.startsWith("audio/") ? (
+              <div className="w-full max-w-2xl rounded-xl bg-slate-900 p-6">
+                <div className="mb-5 text-center text-6xl" aria-hidden="true">
+                  🎵
+                </div>
+                <audio
+                  src={previewUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full"
+                >
+                  Seu navegador nao suporta reproducao de audio.
+                </audio>
+              </div>
+            ) : mimeType?.startsWith("video/") ? (
               <video
                 src={previewUrl}
                 className="max-h-full max-w-full rounded-xl bg-black"

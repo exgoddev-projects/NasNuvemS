@@ -23,6 +23,6 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.redirect(
-    new URL("/teste-supabase", url.origin)
+    new URL("/arquivos", url.origin)
   );
 }

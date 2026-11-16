@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { renomearPasta, excluirPastas, moverPastas } from "@/app/arquivos/actions/folders";
+import { caminhoDaPasta } from "@/components/folders/folder-path";
 
 type Folder = {
   id: string;
@@ -392,11 +393,11 @@ export function FolderGrid({
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
               As pastas selecionadas, suas subpastas e todo
-              o conteúdo serão excluídos permanentemente.
+              o conteúdo serão enviados para a lixeira.
             </p>
 
-            <p className="mt-2 text-xs text-red-400">
-              Esta ação não poderá ser desfeita.
+            <p className="mt-2 text-xs text-slate-500">
+              Você poderá restaurar pela lixeira.
             </p>
 
             {erro && (
@@ -477,8 +478,17 @@ export function FolderGrid({
                   >
                     <span className="text-2xl">📁</span>
 
-                    <span className="truncate text-sm font-semibold">
-                      {destination.name}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">
+                        {destination.name}
+                      </span>
+
+                      <span className="block truncate text-xs text-slate-500">
+                        {caminhoDaPasta(
+                          destination.parent_id,
+                          destinations
+                        )}
+                      </span>
                     </span>
                   </button>
                 ))}

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garantirPastasPadrao } from "@/lib/folders/default-folders";
 
 type Folder = {
   id: string;
@@ -32,11 +33,19 @@ export default async function ArquivosPage() {
     redirect("/login");
   }
 
+  // Conta nova: cria as pastas padrao no primeiro acesso.
+  try {
+    await garantirPastasPadrao(supabase, user.id);
+  } catch {
+    // Se falhar, a consulta abaixo mostra o erro normalmente.
+  }
+
   const { data, error } = await supabase
     .from("folders")
     .select("id, name")
     .eq("user_id", user.id)
     .is("parent_id", null)
+    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   const pastas = (data ?? []) as Folder[];
@@ -62,13 +71,14 @@ export default async function ArquivosPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
+            <Link
+              href="/arquivos/busca"
               aria-label="Buscar"
+              title="Buscar"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-lg hover:bg-slate-800"
             >
               🔍
-            </button>
+            </Link>
 
             <Link
               href="/armazenamento"

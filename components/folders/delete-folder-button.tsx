@@ -66,11 +66,11 @@ export function DeleteFolderButton({
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
               Esta pasta, todas as subpastas e todo o conteúdo
-              serão excluídos permanentemente.
+              serão enviados para a lixeira.
             </p>
 
-            <p className="mt-2 text-xs text-red-400">
-              Esta ação não poderá ser desfeita.
+            <p className="mt-2 text-xs text-slate-500">
+              Você poderá restaurar pela lixeira.
             </p>
 
             {erro && (

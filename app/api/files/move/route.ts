@@ -62,6 +62,7 @@ export async function POST(request: Request) {
       .select("id")
       .eq("id", destinationId)
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .single();
 
   if (!destination) {

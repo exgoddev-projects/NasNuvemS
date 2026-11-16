@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { FilePreview } from "@/components/files/file-preview";
 import { caminhoDaPasta } from "@/components/folders/folder-path";
-import { useOptionalDragDrop } from "@/components/filesystem/drag-drop-context";
+import {
+  useOptionalDragDrop,
+  type DragSelectionItem,
+} from "@/components/filesystem/drag-drop-context";
 
 type FileItem = {
   id: string;
@@ -33,8 +36,15 @@ export function FileGrid({
   const [modoSelecao, setModoSelecao] =
     useState(false);
 
-  const [selecionados, setSelecionados] =
+  const [selecionadosLocais, setSelecionadosLocais] =
     useState<Set<string>>(new Set());
+  const selecionados = new Set(
+    dragDrop
+      ? dragDrop.selectedItems
+          .filter((item) => item.type === "file")
+          .map((item) => item.id)
+      : selecionadosLocais
+  );
 
   const [confirmando, setConfirmando] =
     useState(false);
@@ -84,18 +94,64 @@ export function FileGrid({
     return () => setDragSelectionMode?.("files", false);
   }, [modoSelecao, setDragSelectionMode]);
 
-  function alternar(id: string) {
-    setSelecionados((atual) => {
-      const proximo = new Set(atual);
+  function itemSelecionavel(file: FileItem): DragSelectionItem {
+    return {
+      type: "file",
+      id: file.id,
+      name: file.name,
+      mimeType: file.mime_type,
+      previewUrl: file.previewUrl,
+    };
+  }
 
-      if (proximo.has(id)) {
-        proximo.delete(id);
-      } else {
-        proximo.add(id);
-      }
+  function atualizarSelecaoArquivos(items: DragSelectionItem[]) {
+    if (dragDrop) {
+      dragDrop.setSelectedItems(items);
+      return;
+    }
 
-      return proximo;
-    });
+    setSelecionadosLocais(
+      new Set(
+        items
+          .filter((item) => item.type === "file")
+          .map((item) => item.id)
+      )
+    );
+  }
+
+  function limparSelecaoArquivos() {
+    const remaining =
+      dragDrop?.selectedItems.filter((item) => item.type !== "file") ?? [];
+    atualizarSelecaoArquivos(remaining);
+
+    if (dragDrop?.selectionAnchor?.type === "file") {
+      dragDrop.setSelectionAnchor(remaining[0] ?? null);
+    }
+  }
+
+  function alternar(file: FileItem) {
+    if (!dragDrop) {
+      setSelecionadosLocais((current) => {
+        const next = new Set(current);
+        if (next.has(file.id)) next.delete(file.id);
+        else next.add(file.id);
+        return next;
+      });
+      return;
+    }
+
+    const item = itemSelecionavel(file);
+    const next = new Map(
+      dragDrop.selectedItems.map((selected) => [
+        `${selected.type}:${selected.id}`,
+        selected,
+      ])
+    );
+    const key = `file:${file.id}`;
+    if (next.has(key)) next.delete(key);
+    else next.set(key, item);
+    dragDrop.setSelectedItems(Array.from(next.values()));
+    dragDrop.setSelectionAnchor(item);
   }
 
   function selecionarTudo() {
@@ -103,17 +159,36 @@ export function FileGrid({
       files.length > 0 &&
       selecionados.size === files.length
     ) {
-      setSelecionados(new Set());
+      if (dragDrop) {
+        const remaining = dragDrop.selectedItems.filter(
+          (item) => item.type !== "file"
+        );
+        atualizarSelecaoArquivos(remaining);
+        if (dragDrop.selectionAnchor?.type === "file") {
+          dragDrop.setSelectionAnchor(remaining[0] ?? null);
+        }
+      } else {
+        setSelecionadosLocais(new Set());
+      }
       return;
     }
 
-    setSelecionados(
-      new Set(files.map((file) => file.id))
-    );
+    if (dragDrop) {
+      const folders = dragDrop.selectedItems.filter(
+        (item) => item.type === "folder"
+      );
+      const fileItems = files.map(itemSelecionavel);
+      atualizarSelecaoArquivos([...folders, ...fileItems]);
+      if (fileItems.length > 0) {
+        dragDrop.setSelectionAnchor(fileItems[fileItems.length - 1]);
+      }
+    } else {
+      setSelecionadosLocais(new Set(files.map((file) => file.id)));
+    }
   }
 
   function cancelar() {
-    setSelecionados(new Set());
+    limparSelecaoArquivos();
     setModoSelecao(false);
     setErro("");
   }
@@ -214,7 +289,7 @@ export function FileGrid({
 
       setRenomeando(false);
       setNovoNome("");
-      setSelecionados(new Set());
+      limparSelecaoArquivos();
       setModoSelecao(false);
 
       window.location.reload();
@@ -276,7 +351,7 @@ export function FileGrid({
         );
       }
 
-      setSelecionados(new Set());
+      limparSelecaoArquivos();
       setModoSelecao(false);
 
       window.location.reload();
@@ -326,7 +401,7 @@ export function FileGrid({
 
       setMovendo(false);
       setDestinoId("");
-      setSelecionados(new Set());
+      limparSelecaoArquivos();
       setModoSelecao(false);
 
       window.location.reload();
@@ -374,7 +449,7 @@ export function FileGrid({
       }
 
       setConfirmando(false);
-      setSelecionados(new Set());
+      limparSelecaoArquivos();
       setModoSelecao(false);
 
       window.location.reload();
@@ -392,7 +467,7 @@ export function FileGrid({
   return (
     <>
       {files.length > 0 && (
-        <div className="col-span-full mb-1 flex items-center justify-between gap-3">
+        <div data-selection-ignore className="col-span-full mb-1 flex items-center justify-between gap-3">
           <div className="text-sm text-slate-500">
             {modoSelecao
               ? `${selecionados.size} selecionado${
@@ -451,13 +526,14 @@ export function FileGrid({
         const podeArrastar =
           !!dragDrop &&
           dragDesktop &&
-          !modoSelecao &&
-          !dragDrop.selectionMode &&
           !dragDrop.moving;
 
         return (
           <div
             key={arquivo.id}
+            data-selection-item
+            data-selection-type="file"
+            data-selection-id={arquivo.id}
             draggable={podeArrastar}
             onDragStart={(event) => {
               if (!podeArrastar || !dragDrop) {
@@ -465,14 +541,15 @@ export function FileGrid({
                 return;
               }
 
-              event.dataTransfer.setDragImage(
-                event.currentTarget,
-                16,
-                16
-              );
               dragDrop.onDragStart(event, {
                 type: "file",
                 id: arquivo.id,
+              }, {
+                type: "file",
+                id: arquivo.id,
+                name: arquivo.name,
+                mimeType: arquivo.mime_type,
+                previewUrl: arquivo.previewUrl,
               });
             }}
             onDragEnd={() => dragDrop?.onDragEnd()}
@@ -500,8 +577,9 @@ export function FileGrid({
               <button
                 type="button"
                 aria-label={`Selecionar ${arquivo.name}`}
+                data-selection-ignore
                 onClick={() =>
-                  alternar(arquivo.id)
+                  alternar(arquivo)
                 }
                 className={`absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-lg border font-bold ${
                   marcado
@@ -516,8 +594,9 @@ export function FileGrid({
             {modoSelecao ? (
               <button
                 type="button"
+                data-selection-ignore
                 onClick={() =>
-                  alternar(arquivo.id)
+                  alternar(arquivo)
                 }
                 className="block w-full text-left"
               >
@@ -626,7 +705,7 @@ export function FileGrid({
 
       {modoSelecao &&
         selecionados.size > 0 && (
-          <div className="fixed bottom-[42px] left-1/2 z-40 w-[calc(100%-24px)] max-w-xl -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur">
+          <div data-selection-ignore className="fixed bottom-[42px] left-1/2 z-40 w-[calc(100%-24px)] max-w-xl -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-around gap-1">
               <button
                 type="button"
@@ -691,7 +770,7 @@ export function FileGrid({
         )}
 
       {renomeando && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white shadow-2xl">
             <div className="text-3xl">
               ✏️
@@ -760,7 +839,7 @@ export function FileGrid({
       )}
 
       {movendo && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white shadow-2xl">
             <div className="text-3xl">
               📂
@@ -859,7 +938,7 @@ export function FileGrid({
       )}
 
       {confirmando && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-slate-900 p-6 text-white shadow-2xl">
             <div className="text-3xl">
               ⚠️

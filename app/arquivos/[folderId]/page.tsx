@@ -9,6 +9,8 @@ import { UploadButton } from "@/components/files/upload-button";
 import { FilePreview } from "@/components/files/file-preview";
 import { FileGrid } from "@/components/files/file-grid";
 import { DragDropProvider } from "@/components/filesystem/drag-drop-context";
+import { DesktopSelectionSurface } from "@/components/filesystem/desktop-selection-surface";
+import type { DragSelectionItem } from "@/components/filesystem/drag-drop-context";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -101,6 +103,21 @@ export default async function PastaPage({
     arquivos ?? []
   );
 
+  const itensSelecao: DragSelectionItem[] = [
+    ...(subpastas ?? []).map((folder) => ({
+      type: "folder" as const,
+      id: folder.id,
+      name: folder.name,
+    })),
+    ...arquivosComPreview.map((file) => ({
+      type: "file" as const,
+      id: file.id,
+      name: file.name,
+      mimeType: file.mime_type,
+      previewUrl: file.previewUrl,
+    })),
+  ];
+
   return (
     <DragDropProvider
       destinations={destinos ?? []}
@@ -187,21 +204,23 @@ export default async function PastaPage({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                <div className="col-span-full">
-                  <FolderGrid
-                    folders={subpastas ?? []}
+              <DesktopSelectionSurface items={itensSelecao}>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                  <div className="col-span-full">
+                    <FolderGrid
+                      folders={subpastas ?? []}
+                      destinations={destinos ?? []}
+                      currentFolderId={pasta.id}
+                    />
+                  </div>
+
+                  <FileGrid
+                    files={arquivosComPreview}
                     destinations={destinos ?? []}
                     currentFolderId={pasta.id}
                   />
                 </div>
-
-                <FileGrid
-                  files={arquivosComPreview}
-                  destinations={destinos ?? []}
-                  currentFolderId={pasta.id}
-                />
-              </div>
+              </DesktopSelectionSurface>
             )}
           </div>
         </section>

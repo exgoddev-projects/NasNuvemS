@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { renomearPasta, excluirPastas, moverPastas } from "@/app/arquivos/actions/folders";
 import { caminhoDaPasta } from "@/components/folders/folder-path";
-import { useDragDrop } from "@/components/filesystem/drag-drop-context";
+import {
+  useDragDrop,
+  type DragSelectionItem,
+} from "@/components/filesystem/drag-drop-context";
 
 type Folder = {
   id: string;
@@ -30,6 +33,10 @@ export function FolderGrid({
     moving: movingByDrag,
     selectionMode,
     setSelectionMode,
+    selectedItems,
+    setSelectedItems,
+    selectionAnchor,
+    setSelectionAnchor,
     isValidDropTarget,
     onDragStart,
     onDragEnd,
@@ -39,8 +46,10 @@ export function FolderGrid({
   } = useDragDrop();
   const [dragDesktop, setDragDesktop] = useState(false);
   const [modoSelecao, setModoSelecao] = useState(false);
-  const [selecionados, setSelecionados] = useState<Set<string>>(
-    new Set()
+  const selecionados = new Set(
+    selectedItems
+      .filter((item) => item.type === "folder")
+      .map((item) => item.id)
   );
   const [renomeando, setRenomeando] = useState(false);
   const [confirmandoExclusao, setConfirmandoExclusao] =
@@ -72,22 +81,35 @@ export function FolderGrid({
     return () => setSelectionMode("folders", false);
   }, [modoSelecao, setSelectionMode]);
 
-  function alternar(folderId: string) {
-    setSelecionados((atual) => {
-      const proximo = new Set(atual);
+  function itemSelecionavel(folder: Folder): DragSelectionItem {
+    return { type: "folder", id: folder.id, name: folder.name };
+  }
 
-      if (proximo.has(folderId)) {
-        proximo.delete(folderId);
-      } else {
-        proximo.add(folderId);
-      }
+  function limparSelecaoPastas() {
+    const remaining = selectedItems.filter((item) => item.type !== "folder");
+    setSelectedItems(remaining);
+    if (selectionAnchor?.type === "folder") {
+      setSelectionAnchor(remaining[0] ?? null);
+    }
+  }
 
-      return proximo;
-    });
+  function alternar(folder: Folder) {
+    const item = itemSelecionavel(folder);
+    const next = new Map(
+      selectedItems.map((selected) => [
+        `${selected.type}:${selected.id}`,
+        selected,
+      ])
+    );
+    const key = `folder:${folder.id}`;
+    if (next.has(key)) next.delete(key);
+    else next.set(key, item);
+    setSelectedItems(Array.from(next.values()));
+    setSelectionAnchor(item);
   }
 
   function cancelarSelecao() {
-    setSelecionados(new Set());
+    limparSelecaoPastas();
     setModoSelecao(false);
   }
 
@@ -121,7 +143,7 @@ export function FolderGrid({
       try {
         await renomearPasta(id, nome);
         setRenomeando(false);
-        setSelecionados(new Set());
+        limparSelecaoPastas();
         setModoSelecao(false);
       } catch (error) {
         setErro(
@@ -145,7 +167,7 @@ export function FolderGrid({
         await excluirPastas(ids);
 
         setConfirmandoExclusao(false);
-        setSelecionados(new Set());
+        limparSelecaoPastas();
         setModoSelecao(false);
       } catch (error) {
         setErro(
@@ -175,7 +197,7 @@ export function FolderGrid({
 
         setMovendo(false);
         setDestinoId("");
-        setSelecionados(new Set());
+        limparSelecaoPastas();
         setModoSelecao(false);
       } catch (error) {
         setErro(
@@ -189,18 +211,25 @@ export function FolderGrid({
 
   function selecionarTudo() {
     if (selecionados.size === folders.length) {
-      setSelecionados(new Set());
+      const remaining = selectedItems.filter((item) => item.type !== "folder");
+      setSelectedItems(remaining);
+      if (selectionAnchor?.type === "folder") {
+        setSelectionAnchor(remaining[0] ?? null);
+      }
       return;
     }
 
-    setSelecionados(
-      new Set(folders.map((folder) => folder.id))
-    );
+    const files = selectedItems.filter((item) => item.type === "file");
+    const folderItems = folders.map(itemSelecionavel);
+    setSelectedItems([...files, ...folderItems]);
+    if (folderItems.length > 0) {
+      setSelectionAnchor(folderItems[folderItems.length - 1]);
+    }
   }
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div data-selection-ignore className="mb-4 flex items-center justify-between gap-3">
         <div className="text-sm text-slate-500">
           {modoSelecao
             ? `${selecionados.size} selecionado${
@@ -250,13 +279,14 @@ export function FolderGrid({
           const destinoValido = isValidDropTarget(folder.id);
           const podeArrastar =
             dragDesktop &&
-            !modoSelecao &&
-            !selectionMode &&
             !movingByDrag;
 
           return (
             <div
               key={folder.id}
+              data-selection-item
+              data-selection-type="folder"
+              data-selection-id={folder.id}
               draggable={podeArrastar}
               onDragStart={(event) => {
                 if (!podeArrastar) {
@@ -264,14 +294,13 @@ export function FolderGrid({
                   return;
                 }
 
-                event.dataTransfer.setDragImage(
-                  event.currentTarget,
-                  16,
-                  16
-                );
                 onDragStart(event, {
                   type: "folder",
                   id: folder.id,
+                }, {
+                  type: "folder",
+                  id: folder.id,
+                  name: folder.name,
                 });
               }}
               onDragEnd={onDragEnd}
@@ -301,7 +330,8 @@ export function FolderGrid({
                 <button
                   type="button"
                   aria-label={`Selecionar ${folder.name}`}
-                  onClick={() => alternar(folder.id)}
+                  data-selection-ignore
+                  onClick={() => alternar(folder)}
                   className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold ${
                     marcado
                       ? "border-blue-500 bg-blue-600 text-white"
@@ -315,7 +345,8 @@ export function FolderGrid({
               {modoSelecao ? (
                 <button
                   type="button"
-                  onClick={() => alternar(folder.id)}
+                  data-selection-ignore
+                  onClick={() => alternar(folder)}
                   className="block w-full text-left"
                 >
                   <div className="text-4xl">📁</div>
@@ -350,7 +381,7 @@ export function FolderGrid({
       </div>
 
       {modoSelecao && selecionados.size > 0 && (
-        <div className="fixed bottom-[42px] left-1/2 z-40 w-[calc(100%-24px)] max-w-xl -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur">
+        <div data-selection-ignore className="fixed bottom-[42px] left-1/2 z-40 w-[calc(100%-24px)] max-w-xl -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur">
           <div className="flex items-center justify-around gap-2">
             <button
               type="button"
@@ -384,7 +415,7 @@ export function FolderGrid({
         </div>
       )}
       {renomeando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <button
             type="button"
             aria-label="Fechar"
@@ -447,7 +478,7 @@ export function FolderGrid({
       )}
 
       {confirmandoExclusao && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <button
             type="button"
             aria-label="Fechar"
@@ -512,7 +543,7 @@ export function FolderGrid({
       )}
 
       {movendo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div data-selection-ignore className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <button
             type="button"
             aria-label="Fechar"

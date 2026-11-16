@@ -23,7 +23,8 @@ export async function addPreviewUrls<T extends PreviewSource>(
       const isPreviewable =
         file.mime_type?.startsWith("image/") ||
         file.mime_type?.startsWith("video/") ||
-        file.mime_type?.startsWith("audio/");
+        file.mime_type?.startsWith("audio/") ||
+        file.mime_type === "application/pdf";
 
       if (
         !isPreviewable ||

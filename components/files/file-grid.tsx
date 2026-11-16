@@ -455,7 +455,11 @@ export function FileGrid({
                 }
                 className="block w-full text-left"
               >
-                {arquivo.mime_type?.startsWith("audio/") ? (
+                {arquivo.mime_type === "application/pdf" ? (
+                  <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-5xl">
+                    📕
+                  </div>
+                ) : arquivo.mime_type?.startsWith("audio/") ? (
                   <div className="flex aspect-square flex-col items-center justify-center gap-3 rounded-xl bg-slate-950 text-center">
                     <span aria-hidden="true" className="text-5xl">
                       🎵

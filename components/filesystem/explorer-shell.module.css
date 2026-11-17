@@ -1,0 +1,22 @@
+.shell {
+  min-height: 100dvh;
+  background: #020617;
+  color: #fff;
+}
+
+.content {
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  .shell {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+  }
+
+  .content > main[class~="fixed"][class~="inset-0"] {
+    left: 16rem;
+    right: auto;
+    width: calc(100% - 16rem);
+  }
+}

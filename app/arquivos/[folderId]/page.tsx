@@ -205,20 +205,36 @@ export default async function PastaPage({
               </div>
             ) : (
               <DesktopSelectionSurface items={itensSelecao}>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                  <div className="col-span-full">
-                    <FolderGrid
-                      folders={subpastas ?? []}
-                      destinations={destinos ?? []}
-                      currentFolderId={pasta.id}
-                    />
-                  </div>
+                <div className="space-y-8">
+                  {(subpastas?.length ?? 0) > 0 && (
+                    <section>
+                      <h2 className="pointer-events-none mb-4 border-b border-slate-800 pb-2 text-xs font-semibold tracking-widest text-slate-500">
+                        PASTAS
+                      </h2>
 
-                  <FileGrid
-                    files={arquivosComPreview}
-                    destinations={destinos ?? []}
-                    currentFolderId={pasta.id}
-                  />
+                      <FolderGrid
+                        folders={subpastas ?? []}
+                        destinations={destinos ?? []}
+                        currentFolderId={pasta.id}
+                      />
+                    </section>
+                  )}
+
+                  {(arquivos?.length ?? 0) > 0 && (
+                    <section>
+                      <h2 className="pointer-events-none mb-4 border-b border-slate-800 pb-2 text-xs font-semibold tracking-widest text-slate-500">
+                        ARQUIVOS
+                      </h2>
+
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                        <FileGrid
+                          files={arquivosComPreview}
+                          destinations={destinos ?? []}
+                          currentFolderId={pasta.id}
+                        />
+                      </div>
+                    </section>
+                  )}
                 </div>
               </DesktopSelectionSurface>
             )}

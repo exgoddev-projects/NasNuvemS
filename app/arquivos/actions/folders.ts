@@ -72,6 +72,7 @@ export async function criarPasta(
   }
 
   revalidatePath(`/arquivos/${parent.id}`);
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function excluirPasta(
@@ -119,6 +120,7 @@ export async function excluirPasta(
   }
 
   revalidatePath("/arquivos");
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function renomearPasta(
@@ -175,6 +177,7 @@ export async function renomearPasta(
   }
 
   revalidatePath(`/arquivos/${pasta.id}`);
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function excluirPastas(
@@ -244,6 +247,7 @@ export async function excluirPastas(
   }
 
   revalidatePath("/arquivos");
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function moverPastas(
@@ -391,6 +395,7 @@ export async function moverPastas(
 
   revalidatePath(`/arquivos/${destinationId}`);
   revalidatePath("/arquivos");
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function restaurarPastas(
@@ -419,6 +424,7 @@ export async function restaurarPastas(
 
   revalidatePath("/arquivos");
   revalidatePath("/arquivos/lixeira");
+  revalidatePath("/arquivos", "layout");
 }
 
 export async function excluirPastasDefinitivamente(

@@ -22,7 +22,12 @@ export async function GET(request: Request) {
     );
   }
 
+  const destination =
+    url.searchParams.get("next") === "/redefinir-senha"
+      ? "/redefinir-senha"
+      : "/arquivos";
+
   return NextResponse.redirect(
-    new URL("/arquivos", url.origin)
+    new URL(destination, url.origin)
   );
 }

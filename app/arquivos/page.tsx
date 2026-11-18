@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { garantirPastasPadrao } from "@/lib/folders/default-folders";
 import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
+import AccountMenu from "@/components/filesystem/account-menu";
 
 type Folder = {
   id: string;
@@ -72,12 +73,7 @@ export default async function ArquivosPage() {
               🔍
             </Link>
 
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-bold"
-              title={user.email ?? "Usuário"}
-            >
-              {(user.email?.[0] ?? "U").toUpperCase()}
-            </div>
+            <AccountMenu email={user.email ?? null} />
           </div>
         </header>
 

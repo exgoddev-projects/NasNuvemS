@@ -52,7 +52,7 @@ export default function LoginPage() {
     setCarregando(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
+      redirectTo: `${window.location.origin}/auth/confirm?next=/redefinir-senha`,
     });
 
     if (error) {

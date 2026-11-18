@@ -10,6 +10,7 @@ import { FilePreview } from "@/components/files/file-preview";
 import { FileGrid } from "@/components/files/file-grid";
 import { DragDropProvider } from "@/components/filesystem/drag-drop-context";
 import { DesktopSelectionSurface } from "@/components/filesystem/desktop-selection-surface";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 import type { DragSelectionItem } from "@/components/filesystem/drag-drop-context";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 import { redirect, notFound } from "next/navigation";
@@ -98,6 +99,8 @@ export default async function PastaPage({
     .eq("folder_id", pasta.id)
     .is("deleted_at", null)
     .order("name");
+
+  const total = (subpastas?.length ?? 0) + (arquivos?.length ?? 0);
 
   const arquivosComPreview = await addPreviewUrls(
     arquivos ?? []
@@ -226,7 +229,7 @@ export default async function PastaPage({
                         ARQUIVOS
                       </h2>
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,96px)] lg:gap-2">
                         <FileGrid
                           files={arquivosComPreview}
                           destinations={destinos ?? []}
@@ -241,14 +244,9 @@ export default async function PastaPage({
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 px-4 text-[10px] text-slate-600 sm:px-6 sm:text-xs">
-          <span>
-            {(subpastas?.length ?? 0) +
-              (arquivos?.length ?? 0)} itens
-          </span>
-
-          <span>NasNuvemS • v0.1.0</span>
-        </footer>
+        <ExplorerStatusBar
+          countText={`${total} ${total === 1 ? "item" : "itens"}`}
+        />
 
       </div>
     </main>

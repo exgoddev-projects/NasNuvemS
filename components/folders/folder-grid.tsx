@@ -271,7 +271,7 @@ export function FolderGrid({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,96px)] lg:gap-2">
         {folders.map((folder) => {
           const marcado = selecionados.has(folder.id);
           const itemArrastado =
@@ -307,7 +307,7 @@ export function FolderGrid({
               onDragOver={(event) => onDragOver(event, folder.id)}
               onDragLeave={(event) => onDragLeave(event, folder.id)}
               onDrop={(event) => void onDrop(event, folder.id)}
-              className={`relative min-w-0 rounded-2xl border p-4 transition ${
+              className={`relative min-w-0 rounded-2xl border p-2 transition lg:rounded-xl lg:p-1.5 ${
                 marcado
                   ? "border-blue-500 bg-blue-500/10"
                   : destinoValido && hoveredFolderId === folder.id
@@ -317,22 +317,13 @@ export function FolderGrid({
                 podeArrastar ? "cursor-grab" : ""
               }`}
             >
-              {dragDesktop && !modoSelecao && !selectionMode && (
-                <span
-                  aria-hidden="true"
-                  className="absolute left-3 top-3 z-10 hidden h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/90 text-slate-300 sm:flex"
-                >
-                  ⠿
-                </span>
-              )}
-
               {modoSelecao && (
                 <button
                   type="button"
                   aria-label={`Selecionar ${folder.name}`}
                   data-selection-ignore
                   onClick={() => alternar(folder)}
-                  className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold ${
+                  className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold lg:right-1 lg:top-1 lg:h-6 lg:w-6 ${
                     marcado
                       ? "border-blue-500 bg-blue-600 text-white"
                       : "border-slate-700 bg-slate-950 text-transparent"
@@ -349,13 +340,13 @@ export function FolderGrid({
                   onClick={() => alternar(folder)}
                   className="block w-full text-left"
                 >
-                  <div className="text-4xl">📁</div>
+                  <div className="text-4xl lg:flex lg:h-20 lg:w-20 lg:items-center lg:justify-center lg:rounded-lg lg:bg-slate-950 lg:text-3xl">📁</div>
 
-                  <div className="mt-4 truncate font-semibold">
+                  <div className="mt-2 truncate font-semibold lg:mt-1.5 lg:text-xs">
                     {folder.name}
                   </div>
 
-                  <div className="mt-1 text-xs text-slate-600">
+                  <div className="mt-1 text-xs text-slate-600 lg:mt-0.5 lg:text-[10px]">
                     Pasta
                   </div>
                 </button>
@@ -364,13 +355,13 @@ export function FolderGrid({
                   href={`/arquivos/${folder.id}`}
                   className="block"
                 >
-                  <div className="text-4xl">📁</div>
+                  <div className="text-4xl lg:flex lg:h-20 lg:w-20 lg:items-center lg:justify-center lg:rounded-lg lg:bg-slate-950 lg:text-3xl">📁</div>
 
-                  <div className="mt-4 truncate font-semibold">
+                  <div className="mt-2 truncate font-semibold lg:mt-1.5 lg:text-xs">
                     {folder.name}
                   </div>
 
-                  <div className="mt-1 text-xs text-slate-600">
+                  <div className="mt-1 text-xs text-slate-600 lg:mt-0.5 lg:text-[10px]">
                     Pasta
                   </div>
                 </Link>

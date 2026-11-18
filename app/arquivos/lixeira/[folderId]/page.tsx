@@ -6,6 +6,7 @@ import { redirect, notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { FilePreview } from "@/components/files/file-preview";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 
 type PastaExcluida = {
@@ -229,11 +230,9 @@ export default async function PastaNaLixeiraPage({
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 px-4 text-xs text-slate-600">
-          <span>{total} item(ns)</span>
-
-          <span>NasNuvemS • v0.1.0</span>
-        </footer>
+        <ExplorerStatusBar
+          countText={`${total} ${total === 1 ? "item" : "itens"}`}
+        />
 
       </div>
     </main>

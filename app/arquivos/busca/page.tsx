@@ -4,6 +4,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 
 type Pasta = {
   id: string;
@@ -259,13 +260,13 @@ export default async function BuscaPage({
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 px-4 text-[10px] text-slate-600 sm:px-6 sm:text-xs">
-          <span>
-            {termo.length > 0 ? `${total} resultado(s)` : ""}
-          </span>
-
-          <span>NasNuvemS • v0.1.0</span>
-        </footer>
+        <ExplorerStatusBar
+          countText={
+            termo.length > 0
+              ? `${total} ${total === 1 ? "item" : "itens"}`
+              : ""
+          }
+        />
       </div>
     </main>
   );

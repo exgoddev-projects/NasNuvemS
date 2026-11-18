@@ -5,6 +5,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { garantirPastasPadrao } from "@/lib/folders/default-folders";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 
 type Folder = {
   id: string;
@@ -118,13 +119,9 @@ export default async function ArquivosPage() {
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 bg-slate-950 px-4 text-[10px] text-slate-600 sm:px-6 sm:text-xs">
-          <span>
-            {pastas.length} {pastas.length === 1 ? "item" : "itens"}
-          </span>
-
-          <span>NasNuvemS • v0.1.0</span>
-        </footer>
+        <ExplorerStatusBar
+          countText={`${pastas.length} ${pastas.length === 1 ? "pasta" : "pastas"}`}
+        />
       </div>
     </main>
   );

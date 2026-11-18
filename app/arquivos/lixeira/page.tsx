@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { TrashGrid } from "@/components/files/trash-grid";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 
 export default async function LixeiraPage() {
@@ -119,11 +120,9 @@ export default async function LixeiraPage() {
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 px-4 text-xs text-slate-600">
-          <span>{total} item(ns)</span>
-
-          <span>NasNuvemS • v0.1.0</span>
-        </footer>
+        <ExplorerStatusBar
+          countText={`${total} ${total === 1 ? "item" : "itens"}`}
+        />
 
       </div>
     </main>

@@ -11,6 +11,7 @@ import {
 import {
   FileGrid,
 } from "@/components/files/file-grid";
+import ExplorerStatusBar from "@/components/filesystem/explorer-status-bar";
 import { addPreviewUrls } from "@/lib/storage/preview-urls";
 
 export default async function FavoritosPage() {
@@ -127,15 +128,9 @@ export default async function FavoritosPage() {
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-slate-800 px-4 text-xs text-slate-600">
-          <span>
-            {arquivosComPreview.length} favorito(s)
-          </span>
-
-          <span>
-            NasNuvemS • v0.1.0
-          </span>
-        </footer>
+        <ExplorerStatusBar
+          countText={`${arquivosComPreview.length} ${arquivosComPreview.length === 1 ? "item" : "itens"}`}
+        />
 
       </div>
     </main>

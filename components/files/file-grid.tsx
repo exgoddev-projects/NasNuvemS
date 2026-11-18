@@ -553,7 +553,7 @@ export function FileGrid({
               });
             }}
             onDragEnd={() => dragDrop?.onDragEnd()}
-            className={`relative rounded-2xl border p-4 transition ${
+            className={`relative rounded-2xl border p-2 transition lg:rounded-xl lg:p-1.5 ${
               marcado
                 ? "border-blue-500 bg-blue-500/10"
                 : "border-slate-800 bg-slate-900"
@@ -561,18 +561,6 @@ export function FileGrid({
               podeArrastar ? "cursor-grab" : ""
             }`}
           >
-            {dragDrop &&
-              dragDesktop &&
-              !modoSelecao &&
-              !dragDrop.selectionMode && (
-              <span
-                aria-hidden="true"
-                className="absolute left-3 top-3 z-10 hidden h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/90 text-slate-300 sm:flex"
-              >
-                ⠿
-              </span>
-            )}
-
             {modoSelecao && (
               <button
                 type="button"
@@ -581,7 +569,7 @@ export function FileGrid({
                 onClick={() =>
                   alternar(arquivo)
                 }
-                className={`absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-lg border font-bold ${
+                className={`absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-lg border font-bold lg:right-1 lg:top-1 lg:h-6 lg:w-6 ${
                   marcado
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-slate-600 bg-slate-950/90 text-transparent"
@@ -601,20 +589,20 @@ export function FileGrid({
                 className="block w-full text-left"
               >
                 {arquivo.mime_type === "application/pdf" ? (
-                  <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-5xl">
+                  <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-5xl lg:rounded-lg lg:text-3xl">
                     📕
                   </div>
                 ) : arquivo.mime_type?.startsWith("audio/") ? (
-                  <div className="flex aspect-square flex-col items-center justify-center gap-3 rounded-xl bg-slate-950 text-center">
-                    <span aria-hidden="true" className="text-5xl">
+                  <div className="flex aspect-square flex-col items-center justify-center gap-3 rounded-xl bg-slate-950 text-center lg:rounded-lg">
+                    <span aria-hidden="true" className="text-5xl lg:text-3xl">
                       🎵
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 lg:text-[10px]">
                       Áudio
                     </span>
                   </div>
                 ) : arquivo.previewUrl ? (
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950 lg:rounded-lg">
                     {arquivo.mime_type?.startsWith("video/") ? (
                       <>
                         <video
@@ -626,7 +614,7 @@ export function FileGrid({
                         />
 
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/70 text-xl text-white">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/70 text-xl text-white lg:h-8 lg:w-8 lg:text-sm">
                             ▶
                           </div>
                         </div>
@@ -640,7 +628,7 @@ export function FileGrid({
                     )}
                   </div>
                 ) : (
-                  <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl">
+                  <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl lg:rounded-lg lg:text-3xl">
                     {arquivo.mime_type?.startsWith(
                       "video/"
                     )
@@ -667,7 +655,7 @@ export function FileGrid({
                 }
               />
             ) : (
-              <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl">
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-950 text-4xl lg:rounded-lg lg:text-3xl">
                 {arquivo.mime_type?.startsWith(
                   "video/"
                 )
@@ -683,11 +671,11 @@ export function FileGrid({
               </div>
             )}
 
-            <div className="mt-4 truncate font-semibold">
+            <div className="mt-2 truncate font-semibold lg:mt-1.5 lg:text-xs">
               {arquivo.name}
             </div>
 
-            <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-600">
+            <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-600 lg:mt-0.5 lg:text-[10px]">
               <span>Arquivo</span>
 
               {arquivo.is_favorite && (
